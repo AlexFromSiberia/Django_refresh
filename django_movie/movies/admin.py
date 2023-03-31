@@ -18,21 +18,23 @@ class ReviewInline(admin.TabularInline):
     # определяет сколько "пустых" заготовок будет в выведенном списке
     extra = 1
     readonly_fields = ('name', 'email')
+    classes = ['collapse']
 
 
 class MovieShotsInline(admin.TabularInline):
     """Для отображения кадров из фильма в модели Фильмы"""
     model = MovieShots
     extra = 1
+    classes = ['collapse']
 
     readonly_fields = ('get_image',)
 
     def get_image(self, obj):
         if obj.image:
-            return mark_safe(f'<img src={obj.image.url} width="50" >')
+            return mark_safe(f'<img src={obj.image.url} width="100">')
         return '-'
 
-    get_image.short_description = 'Изображение'
+    get_image.short_description = 'Кадры из фильма'
 
 
 class MovieAdmin(admin.ModelAdmin):
@@ -51,7 +53,7 @@ class MovieAdmin(admin.ModelAdmin):
         }),
 
         (None, {
-            'fields': (('description', 'poster'),)
+            'fields': (('description', 'get_image'),)
         }),
 
         (None, {
@@ -67,6 +69,16 @@ class MovieAdmin(admin.ModelAdmin):
             'fields': (('url', 'draft'),)
         }),
     )
+
+    readonly_fields = ('get_image',)
+
+    def get_image(self, obj):
+        if obj.poster:
+            return mark_safe(f'<img src={obj.poster.url} width="100">')
+        return '-'
+
+    get_image.short_description = 'Постер'
+
 
 
 class ReviewAdmin(admin.ModelAdmin):
@@ -90,7 +102,7 @@ class ActorAdmin(admin.ModelAdmin):
             return mark_safe(f'<img src={obj.image.url} width="50" >')
         return '-'
 
-    get_image.short_description = 'Изображение'
+    get_image.short_description = 'Фото актера'
 
 
 class RatingAdmin(admin.ModelAdmin):
