@@ -1,7 +1,19 @@
 from django.contrib import admin
+from django import forms
 from django.utils.safestring import mark_safe
 
 from .models import Category, Genre, Movie, MovieShots, Actor, Rating, Reviews, RatingStar
+from ckeditor_uploader.widgets import CKEditorUploadingWidget
+
+
+class MovieAdminForm(forms.ModelForm):
+    """Форма для CKEditor"""
+	# content - field in our model
+    description = forms.CharField(label="Описание",  widget=CKEditorUploadingWidget())
+
+    class Meta:
+        model = Movie
+        fields = '__all__'
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -39,6 +51,8 @@ class MovieShotsInline(admin.TabularInline):
 
 class MovieAdmin(admin.ModelAdmin):
     """Фильмы"""
+    # form - форма для ckeditor
+    form = MovieAdminForm
     list_display = ("title", "category", "url", "draft")
     list_filter = ("category", "year")
     search_fields = ("title", "category__name")
@@ -53,7 +67,7 @@ class MovieAdmin(admin.ModelAdmin):
         }),
 
         (None, {
-            'fields': (('description', 'get_image'),)
+            'fields': (('description', 'poster', 'get_image'),)
         }),
 
         (None, {
@@ -78,7 +92,35 @@ class MovieAdmin(admin.ModelAdmin):
         return '-'
 
     get_image.short_description = 'Постер'
+    # регестрируем экшены
+    actions = ['unpublish', 'publish']
 
+    def unpublish(self, request, queryset):
+        """Unpublish the movie"""
+        # выполняемое действие - статус черновика в Тру
+        row_update = queryset.update(draft=True)
+        # тут описываем сообщение по завершению.
+        # Зависит один или несколько обьектов были выбраны
+        if row_update == 1:
+            message_bit = '1 Запись успешно обновлена'
+        else:
+            message_bit = f'{row_update} Записей были обновлены'
+        self.message_user(request, f'{message_bit}')
+
+    def publish(self, request, queryset):
+        """publish the movie"""
+        row_update = queryset.update(draft=False)
+        if row_update == 1:
+            message_bit = '1 Запись успешно обновлена'
+        else:
+            message_bit = f'{row_update} Записей были обновлены'
+        self.message_user(request, f'{message_bit}')
+
+    unpublish.short_description = 'Снять с публикации'
+    unpublish.allowed_permissions = ('change',)
+
+    publish.short_description = 'Публиковать'
+    publish.allowed_permissions = ('change',)
 
 
 class ReviewAdmin(admin.ModelAdmin):
