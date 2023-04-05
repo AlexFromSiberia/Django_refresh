@@ -47,15 +47,22 @@ class Genre(models.Model):
 
 
 class Movie(models.Model):
+
+    directors = models.ManyToManyField(Actor, verbose_name='режиссёр', related_name='film_director')
+    actors =    models.ManyToManyField(Actor, verbose_name='актёр', related_name='film_actor')
+    genres =    models.ManyToManyField(Genre, verbose_name='жанры')
+
+    category =  models.ForeignKey(Category, verbose_name='Категория', on_delete=models.SET_NULL, null=True)
+
+
+
+    url = models.SlugField(max_length=100, unique=True)
     title = models.CharField('Название', max_length=100)
     tagline = models.CharField('Слоган', max_length=300, default='')
     description = models.TextField('Описание', )
     poster = models.ImageField('Постер', upload_to='movies/')
     year = models.PositiveSmallIntegerField('Дата выхода', default='2000')
     country = models.CharField('Страна', max_length=40)
-    directors = models.ManyToManyField(Actor, verbose_name='режиссёр', related_name='film_director')
-    actors = models.ManyToManyField(Actor, verbose_name='актёр', related_name='film_actor')
-    genres = models.ManyToManyField(Genre, verbose_name='жанры')
     world_premiere = models.DateField('Премьера в мире', default=date.today)
     budget = models.PositiveSmallIntegerField('Бюджет', default=0,
                                               help_text='указывать сумму в долларах')
@@ -65,8 +72,7 @@ class Movie(models.Model):
     fees_in_world = models.PositiveSmallIntegerField('Сборы в мире',
                                                      default=0,
                                                      help_text='указывать сумму в долларах')
-    category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.SET_NULL, null=True)
-    url = models.SlugField(max_length=100, unique=True)
+
     draft = models.BooleanField('Черновик', default=False)
 
     def get_absolute_url(self):
